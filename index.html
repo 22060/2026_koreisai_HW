@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>BNO085 Viewer</title>
+
+<style>
+body{
+    margin:0;
+    overflow:hidden;
+    background:#202020;
+    color:white;
+    font-family:sans-serif;
+}
+
+#info{
+    position:absolute;
+    top:10px;
+    left:10px;
+    z-index:100;
+}
+#calibrate{
+    position:absolute;
+    top:80px;
+    left:10px;
+    z-index:100;
+    padding:10px;
+    margin-top:100px;
+}
+</style>
+
+</head>
+
+<body>
+<div id="info">
+    <div id="status">Disconnected</div>
+    <div id="quat"></div>
+</div>
+<button id="calibrate" >
+    Calibrate
+</button>
+
+<script type="module">
+
+
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+
+document
+.getElementById("calibrate")
+.addEventListener("click", () =>
+{
+    ws.send(JSON.stringify({
+        type:"calibrate",
+        target:"controller_001"
+    }));
+});
+
+const scene = new THREE.Scene();
+
+const camera = new THREE.PerspectiveCamera(
+    60,
+    window.innerWidth/window.innerHeight,
+    0.1,
+    100
+);
+
+camera.position.z = 3;
+
+const renderer = new THREE.WebGLRenderer({
+    antialias:true
+});
+
+renderer.setSize(
+    window.innerWidth,
+    window.innerHeight
+);
+
+document.body.appendChild(renderer.domElement);
+
+// Cube
+
+const geometry =
+    new THREE.BoxGeometry(
+        0.5,
+        0.2,
+        2.0
+    );
+
+const materials = [
+    new THREE.MeshBasicMaterial({color:0x00ff00}),
+    new THREE.MeshBasicMaterial({color:0x00ff00}),
+    new THREE.MeshBasicMaterial({color:0x0000ff}),
+    new THREE.MeshBasicMaterial({color:0x0000ff}),
+    new THREE.MeshBasicMaterial({color:0xff0000}),
+    new THREE.MeshBasicMaterial({color:0xffff00})
+];
+
+const cube =
+    new THREE.Mesh(
+        geometry,
+        materials
+    );
+cube.useQuaternion = true;
+scene.add(cube);
+
+// Grid
+
+const grid =
+    new THREE.GridHelper(10,10);
+
+scene.add(grid);
+
+// Axes
+
+const axes =
+    new THREE.AxesHelper(2);
+
+scene.add(axes);
+
+// WebSocket
+const status = document.getElementById("status");
+const ws =
+    new WebSocket(
+        "wss://koreisai.ryutolab.com/ws"
+    );
+
+ws.onopen = () =>
+{
+    status.innerText = "Connected";
+};
+
+ws.onclose = () =>
+{
+    status.innerText = "Disconnected";
+};
+const quat = document.getElementById("quat");
+ws.onmessage = event =>
+{
+    const data = JSON.parse(event.data);
+
+    if(data.type !== "state")
+        return;
+
+    const ids = Object.keys(data.controllers);
+
+    if(ids.length === 0)
+        return;
+
+    const controller = data.controllers[ids[0]];
+
+    // console.log(controller);
+
+    if(!controller.quat)
+        return;
+
+    const q = controller.quat;
+
+    quat.innerText =
+`w: ${q.w.toFixed(3)}
+x: ${q.x.toFixed(3)}
+y: ${q.y.toFixed(3)}
+z: ${q.z.toFixed(3)}`;
+
+    cube.quaternion.set(
+    q.y,
+    q.z,
+    q.x,
+    q.w
+);
+};
+
+function animate()
+{
+    requestAnimationFrame(
+        animate
+    );
+
+    renderer.render(
+        scene,
+        camera
+    );
+}
+
+animate();
+
+window.addEventListener(
+    "resize",
+    () =>
+    {
+        camera.aspect =
+            window.innerWidth /
+            window.innerHeight;
+
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(
+            window.innerWidth,
+            window.innerHeight
+        );
+    }
+);
+
+</script>
+
+</body>
+</html>
