@@ -1,5 +1,69 @@
 const WebSocket = require('ws');
+const http = require('http');
+const express = require('express');
+const path = require('path');
+const MONITOR_HTTP_PORT = 8085;
+const app = express();
 
+app.use(
+    express.static(
+        path.join(__dirname, "public")
+    )
+);
+
+app.listen(
+    MONITOR_HTTP_PORT,
+    () =>
+    {
+        console.log(
+            `Monitor HTTP : ${MONITOR_HTTP_PORT}`
+        );
+    }
+);
+const monitorServer =
+    new WebSocket.Server({
+        port: 8083
+    });
+
+const monitorClients =
+    new Set();
+
+monitorServer.on(
+    "connection",
+    ws =>
+{
+    monitorClients.add(ws);
+
+    ws.on(
+        "close",
+        () =>
+        {
+            monitorClients.delete(ws);
+        }
+    );
+});
+function webLog(message)
+{
+    console.log(message);
+
+    const packet =
+    {
+        type:"log",
+        time:new Date().toLocaleTimeString(),
+        message
+    };
+
+    const json =
+        JSON.stringify(packet);
+
+    monitorClients.forEach(client =>
+    {
+        if(client.readyState === WebSocket.OPEN)
+        {
+            client.send(json);
+        }
+    });
+}
 //==================================================
 // Settings
 //==================================================
@@ -45,7 +109,7 @@ function removeController(id)
     delete controllers[id];
     sensorSockets.delete(id);
 
-    console.log(`Controller Removed : ${id}`);
+    webLog(`Controller Removed : ${id}`);
 }
 
 function broadcastToGames(packet)
@@ -67,7 +131,7 @@ function broadcastToGames(packet)
 
 sensorServer.on('connection', ws =>
 {
-    console.log("Sensor Connected");
+    webLog("Sensor Connected");
 
     let controllerId = null;
 
@@ -106,7 +170,7 @@ sensorServer.on('connection', ws =>
             removeController(controllerId);
         }
 
-        console.log("Sensor Disconnected");
+        webLog("Sensor Disconnected");
     });
 
     ws.on('error', error =>
@@ -121,7 +185,7 @@ sensorServer.on('connection', ws =>
 
 gameServer.on('connection', ws =>
 {
-    console.log("Game Connected");
+    webLog("Game Connected");
 
     gameClients.add(ws);
 
@@ -134,7 +198,7 @@ gameServer.on('connection', ws =>
     {
         gameClients.delete(ws);
 
-        console.log("Game Disconnected");
+        webLog("Game Disconnected");
     });
 
     ws.on('error', error =>
@@ -163,7 +227,7 @@ gameServer.on('connection', ws =>
                         })
                     );
 
-                    console.log(
+                    webLog(
                         `Calibration request -> ${packet.target}`
                     );
                 }
@@ -224,38 +288,38 @@ setInterval(() =>
 
 setInterval(() =>
 {
-    console.clear();
-
-    console.log("================================");
-    console.log(" Controller Server");
-    console.log("================================");
-
-    console.log(`Sensor Port : ${SENSOR_PORT}`);
-    console.log(`Game Port   : ${GAME_PORT}`);
-
-    console.log("");
-
-    console.log(
-        `Game Clients : ${gameClients.size}`
-    );
-
-    console.log(
-        `Controllers  : ${Object.keys(controllers).length}`
-    );
-
-    console.log("");
-
-    Object.values(controllers).forEach(c =>
+    const packet =
     {
-        console.log(
-            `${c.id}`
-        );
-    });
+        type: "status",
+
+        timestamp: now(),
+
+        sensorPort: SENSOR_PORT,
+        gamePort: GAME_PORT,
+
+        gameClients: gameClients.size,
+
+        controllerCount:
+            Object.keys(controllers).length,
+
+        controllers: controllers
+    };
+
+    const json =
+        JSON.stringify(packet);
+
+    for(const client of monitorClients)
+    {
+        if(client.readyState === WebSocket.OPEN)
+        {
+            client.send(json);
+        }
+    }
 
 }, 1000);
 
-console.log("================================");
-console.log("Controller Server Started");
-console.log(`Sensor WS : ${SENSOR_PORT}`);
-console.log(`Game WS   : ${GAME_PORT}`);
-console.log("================================");
+webLog("================================");
+webLog("Controller Server Started");
+webLog(`Sensor WS : ${SENSOR_PORT}`);
+webLog(`Game WS   : ${GAME_PORT}`);
+webLog("================================");
