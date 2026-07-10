@@ -136,6 +136,7 @@ ws.onclose = () =>
 const quat = document.getElementById("quat");
 ws.onmessage = event =>
 {
+    console.log(event.data)
     const data = JSON.parse(event.data);
 
     if(data.type !== "state")

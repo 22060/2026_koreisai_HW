@@ -1,3 +1,4 @@
+#ifdef GYRO_TEST
 #include <Arduino.h>
 // This demo explores two reports (SH2_ARVR_STABILIZED_RV and SH2_GYRO_INTEGRATED_RV) both can be used to give 
 // quartenion and euler (yaw, pitch roll) angles.  Toggle the FAST_MODE define to see other report.  
@@ -258,3 +259,5 @@ void loop() {
   }
 
 }
+
+#endif
