@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Monitor</title>
+</head>
+<body>
+
+<h1>Controller Monitor</h1>
+
+<div id="status"></div>
+
+<pre id="log"></pre>
+
+<script>
+
+const statusDiv =
+    document.getElementById("status");
+
+const logDiv =
+    document.getElementById("log");
+
+const ws =
+    new WebSocket(
+        "wss://" +
+        location.host +
+        "/monitorws"
+    );
+
+ws.onmessage = event =>
+{
+    const data =
+        JSON.parse(event.data);
+
+    if(data.type === "log")
+    {
+        logDiv.textContent +=
+            `[${data.time}] ${data.message}\n`;
+    }
+
+    if(data.type === "status")
+    {
+        let html =
+        `
+        Game Clients :
+        ${data.gameClients}<br>
+
+        Controllers :
+        ${data.controllerCount}<br><br>
+        `;
+
+        for(const id in data.controllers)
+        {
+            html += `
+            <b>${id}</b><br>
+            Last Update :
+            ${data.controllers[id].lastUpdate}
+            <br><br>
+            `;
+        }
+
+        statusDiv.innerHTML =
+            html;
+    }
+};
+
+</script>
+
+</body>
+</html>
