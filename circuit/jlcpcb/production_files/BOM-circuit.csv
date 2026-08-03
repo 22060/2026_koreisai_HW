@@ -21,8 +21,8 @@ TestPoint,TP1,TestPoint_Pad_D1.5mm,,1
 ESP32-C3-WROOM-02,U1,ESP32-C3-WROOM-02,,1
 Conn_01x10_Pin,J4,PinHeader_1x10_P2.54mm_Vertical,,1
 10u,C2,C_0603_1608Metric,,1
-SW_Push,NRST1,SW_SPST_PTS810,,1
-SW_Push,button1,SW_SPST_PTS810,,1
 4.7k,R3,R_0603_1608Metric_Pad0.98x0.95mm_HandSolder,,1
 4.7k,R4,R_0603_1608Metric_Pad0.98x0.95mm_HandSolder,,1
 0.1u,C3,C_0603_1608Metric,,1
+SW_Push,RST,SW_SPST_PTS810,,1
+SW_Push,boot,SW_SPST_PTS810,,1
