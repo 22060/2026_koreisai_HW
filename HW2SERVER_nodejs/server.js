@@ -148,13 +148,24 @@ sensorServer.on('connection', ws =>
 
             controllerId = data.id;
 
+            const receivedAt = now();
+            const transportDelay =
+                receivedAt - data.timestamp;
+
             controllers[controllerId] =
             {
                 ...data,
-                lastUpdate: now()
+                lastUpdate: receivedAt,
+                receivedAt,
+                transportDelay
             };
 
             sensorSockets.set(controllerId, ws);
+
+            console.log(
+                `[${controllerId}] ` +
+                `transport=${transportDelay}ms`
+            );
         }
         catch(error)
         {
@@ -277,6 +288,12 @@ setInterval(() =>
 
         controllers
     };
+    for(const id in controllers)
+    {
+        if(controllers[id].ping > 400){
+            webLog(`Controller ${id} ping is high: ${controllers[id].ping}ms`);
+        }
+    }
 
     broadcastToGames(packet);
 

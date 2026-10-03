@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Controller Network Monitor</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont,
+                     "Segoe UI", sans-serif;
+        background: #111827;
+        color: #f3f4f6;
+    }
+
+    header {
+        padding: 20px 24px;
+        background: #1f2937;
+        border-bottom: 1px solid #374151;
+    }
+
+    h1 {
+        margin: 0;
+        font-size: 22px;
+    }
+
+    .status {
+        margin-top: 6px;
+        font-size: 13px;
+        color: #9ca3af;
+    }
+
+    #controllers {
+        padding: 20px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+        gap: 20px;
+    }
+
+    .controller {
+        background: #1f2937;
+        border: 1px solid #374151;
+        border-radius: 12px;
+        padding: 18px;
+    }
+
+    .controller-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .controller-name {
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .online {
+        color: #22c55e;
+    }
+
+    .offline {
+        color: #ef4444;
+    }
+
+    .metrics {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 18px;
+    }
+
+    .metric {
+        background: #111827;
+        border-radius: 8px;
+        padding: 10px;
+    }
+
+    .metric-label {
+        font-size: 11px;
+        color: #9ca3af;
+        margin-bottom: 4px;
+    }
+
+    .metric-value {
+        font-size: 20px;
+        font-weight: 600;
+    }
+
+    .chart-container {
+        height: 220px;
+    }
+</style>
+
+</head>
+
+<body>
+
+<header>
+    <h1>Controller Network Monitor</h1>
+    <div class="status" id="connectionStatus">
+        WebSocket disconnected
+    </div>
+</header>
+
+<div id="controllers"></div>
+
+<script>
+
+const WS_URL = "wss://koreisai.ryutolab.com/ws";
+
+// グラフに保持する時間
+const HISTORY_MS = 1000;
+
+// オフライン判定
+const OFFLINE_MS = 3000;
+
+const controllers = {};
+
+let ws;
+
+
+/*
+ * Controllerデータ
+ *
+ * {
+ *   id,
+ *   chart,
+ *   times: [],
+ *   frequency: [],
+ *   controllerToServer: [],
+ *   serverToClient: [],
+ *   lastUpdate
+ * }
+ */
+
+
+/*
+ * WebSocket接続
+ */
+function connect() {
+
+    ws = new WebSocket(WS_URL);
+
+    ws.onopen = () => {
+        document.getElementById("connectionStatus").textContent =
+            "WebSocket connected";
+    };
+
+    ws.onclose = () => {
+        document.getElementById("connectionStatus").textContent =
+            "WebSocket disconnected";
+
+        setTimeout(connect, 1000);
+    };
+
+    ws.onerror = () => {
+        ws.close();
+    };
+
+    ws.onmessage = event => {
+
+        try {
+
+            const data = JSON.parse(event.data);
+
+            if (data.type !== "state")
+                return;
+
+            processState(data);
+
+        } catch (e) {
+
+            console.error("Invalid JSON:", e);
+
+        }
+    };
+}
+
+
+/*
+ * stateを処理
+ */
+function processState(state) {
+
+    const now = Date.now();
+
+    /*
+     * サーバーが生成したtimestamp
+     *
+     * 今のJSONでは timestamp をサーバー時刻として扱う。
+     */
+    const serverTimestamp = Number(state.timestamp);
+
+    for (const [id, controller] of Object.entries(state.controllers)) {
+
+        /*
+         * 初めて見たController
+         */
+        if (!controllers[id]) {
+            createController(id);
+        }
+
+        const c = controllers[id];
+
+        /*
+         * Controller → Server
+         *
+         * controller.timestamp がController側の時刻。
+         *
+         * 注意:
+         * ControllerとServerの時計が同期していることが前提。
+         */
+        const controllerToServer =
+            serverTimestamp - Number(controller.timestamp);
+
+
+        /*
+         * Server → Client
+         *
+         * HTML側で受信した現在時刻との差。
+         */
+        const serverToClient =
+            now - serverTimestamp;
+
+
+        /*
+         * Controller送信間隔
+         *
+         * lastUpdateの差分から計算。
+         */
+        let frequency = null;
+
+        if (c.lastControllerUpdate !== null) {
+
+            const interval =
+                Number(controller.lastUpdate) -
+                c.lastControllerUpdate;
+
+            if (interval > 0) {
+                frequency = 1000 / interval;
+            }
+        }
+
+        c.lastControllerUpdate =
+            Number(controller.lastUpdate);
+
+        c.lastReceived = now;
+
+
+        /*
+         * データ追加
+         */
+        const elapsed = now / 1000;
+
+        if (frequency !== null) {
+
+            c.times.push(elapsed);
+            c.frequency.push(frequency);
+            c.controllerToServer.push(controllerToServer);
+            c.serverToClient.push(serverToClient);
+
+        }
+
+
+        /*
+         * 古いデータを削除
+         */
+        const cutoff = elapsed - HISTORY_MS / 1000;
+
+        while (
+            c.times.length > 0 &&
+            c.times[0] < cutoff
+        ) {
+
+            c.times.shift();
+            c.frequency.shift();
+            c.controllerToServer.shift();
+            c.serverToClient.shift();
+
+        }
+
+
+        /*
+         * 数値表示
+         */
+        updateMetric(
+            c,
+            "frequency",
+            frequency !== null
+                ? frequency.toFixed(1) + " Hz"
+                : "--"
+        );
+
+        updateMetric(
+            c,
+            "controllerToServer",
+            controllerToServer.toFixed(1) + " ms"
+        );
+
+        updateMetric(
+            c,
+            "serverToClient",
+            serverToClient.toFixed(1) + " ms"
+        );
+
+
+        updateChart(c);
+    }
+}
+
+
+/*
+ * Controller UI生成
+ */
+function createController(id) {
+
+    const container =
+        document.getElementById("controllers");
+
+    const element =
+        document.createElement("div");
+
+    element.className = "controller";
+
+    element.id = `controller-${id}`;
+
+    element.innerHTML = `
+
+        <div class="controller-header">
+
+            <div class="controller-name">
+                ${id}
+            </div>
+
+            <div class="online" id="${id}-status">
+                ● ONLINE
+            </div>
+
+        </div>
+
+        <div class="metrics">
+
+            <div class="metric">
+                <div class="metric-label">
+                    SEND FREQUENCY
+                </div>
+
+                <div
+                    class="metric-value"
+                    id="${id}-frequency"
+                >
+                    --
+                </div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-label">
+                    CONTROLLER → SERVER
+                </div>
+
+                <div
+                    class="metric-value"
+                    id="${id}-controllerToServer"
+                >
+                    --
+                </div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-label">
+                    SERVER → CLIENT
+                </div>
+
+                <div
+                    class="metric-value"
+                    id="${id}-serverToClient"
+                >
+                    --
+                </div>
+            </div>
+
+        </div>
+
+        <div class="chart-container">
+            <canvas id="${id}-chart"></canvas>
+        </div>
+    `;
+
+    container.appendChild(element);
+
+
+    const ctx =
+        document.getElementById(`${id}-chart`)
+        .getContext("2d");
+
+
+    const chart =
+        new Chart(ctx, {
+
+            type: "line",
+
+            data: {
+
+                labels: [],
+
+                datasets: [
+
+                    {
+                        label: "Frequency (Hz)",
+                        data: [],
+                        yAxisID: "frequency",
+                        tension: 0.2,
+                        pointRadius: 0
+                    },
+
+                    {
+                        label: "Controller → Server (ms)",
+                        data: [],
+                        yAxisID: "latency",
+                        tension: 0.2,
+                        pointRadius: 0
+                    },
+
+                    {
+                        label: "Server → Client (ms)",
+                        data: [],
+                        yAxisID: "latency",
+                        tension: 0.2,
+                        pointRadius: 0
+                    }
+
+                ]
+
+            },
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                animation: false,
+
+                interaction: {
+                    mode: "index",
+                    intersect: false
+                },
+
+                scales: {
+
+                    x: {
+                        display: false
+                    },
+
+                    frequency: {
+                        type: "linear",
+                        position: "left",
+                        title: {
+                            display: true,
+                            text: "Hz"
+                        }
+                    },
+
+                    latency: {
+                        type: "linear",
+                        position: "right",
+                        title: {
+                            display: true,
+                            text: "ms"
+                        },
+
+                        grid: {
+                            drawOnChartArea: false
+                        }
+                    }
+
+                }
+
+            }
+
+        });
+
+
+    controllers[id] = {
+
+        id,
+
+        chart,
+
+        times: [],
+
+        frequency: [],
+
+        controllerToServer: [],
+
+        serverToClient: [],
+
+        lastControllerUpdate: null,
+
+        lastReceived: Date.now()
+
+    };
+}
+
+
+/*
+ * 数値表示
+ */
+function updateMetric(controller, metric, value) {
+
+    const element =
+        document.getElementById(
+            `${controller.id}-${metric}`
+        );
+
+    if (element)
+        element.textContent = value;
+}
+
+
+/*
+ * グラフ更新
+ */
+function updateChart(c) {
+
+    const chart = c.chart;
+
+    chart.data.labels =
+        c.times.map(t => {
+
+            const date =
+                new Date(t * 1000);
+
+            return date.toLocaleTimeString(
+                [],
+                {
+                    minute: "2-digit",
+                    second: "2-digit"
+                }
+            );
+
+        });
+
+
+    chart.data.datasets[0].data =
+        c.frequency;
+
+    chart.data.datasets[1].data =
+        c.controllerToServer;
+
+    chart.data.datasets[2].data =
+        c.serverToClient;
+
+
+    chart.update("none");
+}
+
+
+/*
+ * Offline判定
+ */
+setInterval(() => {
+
+    const now = Date.now();
+
+    for (const [id, c] of Object.entries(controllers)) {
+
+        const status =
+            document.getElementById(`${id}-status`);
+
+        if (!status)
+            continue;
+
+
+        if (now - c.lastReceived > OFFLINE_MS) {
+
+            status.textContent = "● OFFLINE";
+            status.className = "offline";
+
+        } else {
+
+            status.textContent = "● ONLINE";
+            status.className = "online";
+
+        }
+
+    }
+
+}, 500);
+
+
+/*
+ * WebSocket開始
+ */
+connect();
+
+</script>
+
+</body>
+</html>
