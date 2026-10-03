@@ -1,0 +1,13 @@
+PACKAGE 'solderjumper-3_p1_3mm_bridged12_pad1_0x1_5mm_numberlabels'
+CLASS IC
+PINCOUNT 3
+PINORDER MAIN ,
+	A__1,
+	C__2,
+	B__3
+FUNCTION MAIN MAIN ,
+	1,
+	2,
+	3
+PACKAGEPROP VALUE Jumper_3_Bridged12
+END

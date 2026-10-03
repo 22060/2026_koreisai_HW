@@ -1,0 +1,199 @@
+\documentclass[a4paper,11pt]{ltjsarticle}
+% 数式
+\usepackage{amsmath,amsfonts}
+\usepackage{bm}
+% 画像
+\usepackage{graphicx}
+\usepackage{circuitikz}
+\usepackage{amsmath,amssymb}
+\usepackage{siunitx}
+\usepackage{float}
+\usepackage{tikz}
+\usepackage{askmaps}
+\usepackage{multirow}
+\usepackage{bigstrut}
+\usepackage{slashbox}
+\usepackage{rotating}
+\usepackage{listings}
+% 数式
+% \usepackage{physics}
+\usepackage{mathtools}
+% 画像
+\usepackage{subcaption}
+% 表
+\usepackage{makecell}
+% その他
+\usepackage[hyphens]{url}
+\usepackage{ascmac}
+\usepackage{cases}
+\usepackage{here}
+\usepackage{upgreek}
+\usepackage[
+  hidelinks, % リンクに枠をつけない
+     % dvipdfmx使用ならオプション指定必須
+  ]{hyperref}
+  
+% 日本語対応
+\usepackage{luatexja}
+\usepackage{luatexja-fontspec}
+
+
+
+\definecolor{commentgreen}{RGB}{0,200,0}
+\definecolor{eminence}{RGB}{120,80,250}
+\definecolor{weborange}{RGB}{255,165,0}
+\definecolor{frenchplum}{RGB}{10,150,200}
+\definecolor{commentgreen}{RGB}{0,200,0}
+\definecolor{eminence}{RGB}{120,80,250}
+\definecolor{weborange}{RGB}{255,165,0}
+\definecolor{frenchplum}{RGB}{10,150,200}
+
+\lstset{
+        language = {C},
+        basicstyle = \ttfamily\small,
+        keywordstyle=\color{eminence}\ttfamily\bfseries,
+        commentstyle=\color{commentgreen}\textit,
+    identifierstyle=\color{black}\ttfamily,
+        xleftmargin=.35in,
+        frame=lines,
+    showstringspaces=false,
+        numbers=left,
+        stepnumber = 1,
+        breaklines=true,
+        numberstyle = \ttfamily\normalsize,
+    tabsize=4,  
+        emph={int, int8_t, int16_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, uint64_t, char, double, float, unsigned, void, bool},
+        emphstyle={\color{blue}}, 
+        morekeywords={>, <, ., ;, +, -, *, /, !, =, ~},
+        breakindent = 10pt, 
+        framexleftmargin=10mm, 
+        columns=fixed,
+        basewidth=0.5em,
+        }
+
+% 特定のスタイル設定
+\lstdefinestyle{customtxt}{
+  basicstyle=\ttfamily\footnotesize,
+  backgroundcolor=\color{lightgray},
+  frame=single,
+  breaklines=true,
+  columns=fullflexible,
+  showspaces=false,
+  showstringspaces=false,
+  showtabs=false,
+  tabsize=4,
+}
+
+\newcommand{\fig}[4]{
+    \begin{figure}[htbp]
+      \centering
+      \includegraphics[#4]{./image/#1}
+      \caption{#2}
+      \label{fig:#3}
+    \end{figure}
+  }
+\AtBeginDocument{\RenewCommandCopy\qty\SI}
+\begin{document}
+
+\section{フットプリント指定について}
+\subsection{Mounting Hole}
+表\ref{tab:MountingHole},画像\ref{fig:MountingHole}に示す．
+\begin{table}[H]
+    \centering
+    \caption{Mounting Holeのフットプリント指定}
+    \label{tab:MountingHole}
+    \begin{tabular}{|c|c|c|c|}
+        \hline
+        \textbf{項目} & \textbf{値} & \textbf{単位} & \textbf{備考} \\ \hline
+        Pad Diameter & -- & -- &  \\ \hline
+        Hole Diameter & 3.2 & mm &  \\ \hline
+        Keepout Diameter & 6.4 & mm &  \\ \hline
+    \end{tabular}
+\end{table}
+\fig{m3.png}{Mounting Holeのフットプリント}{MountingHole}{width=0.5\textwidth}
+\subsubsection{J2のフットプリント指定}
+表\ref{tab:J2},画像\ref{fig:J2}に示す．このフットプリントはUSBコネクタの配置をせずとも，USB機能
+を使用できるようにするためのものであり，プローブ基板を用いてプログラムの書き込みをできるようにするためのものである．
+\begin{table}[H]
+    \centering
+    \caption{J2のフットプリント指定}
+    \label{tab:J2}
+    \begin{tabular}{|c|c|c|c|}
+        \hline
+        \textbf{項目} & \textbf{値} & \textbf{単位} & \textbf{備考} \\ \hline
+        Pad Diameter & 1.7 & mm &  \\ \hline
+        Hole Diameter & 1.0 & mm &  \\ \hline
+        Keepout Diameter & 0 & mm &  \\ \hline
+        pad to pad & 2.54 & mm &  \\ \hline
+        amount of pad & 4 & -- &  \\ \hline
+    \end{tabular}
+\end{table}
+\fig{J2.png}{J2のフットプリント}{J2}{width=0.5\textwidth}
+\subsubsection{J3のフットプリント指定}
+表\ref{tab:J3},画像\ref{fig:J3}に示す．このフットプリントはモジュール型の
+IMUを搭載するときに使用するものである．ピンヘッダを用いて，基板外に配置する
+モジュールとの配線を行う方式にする．
+\begin{table}[H]
+    \centering
+    \caption{J3のフットプリント指定}
+    \label{tab:J3}
+    \begin{tabular}{|c|c|c|c|}
+        \hline
+        \textbf{項目} & \textbf{値} & \textbf{単位} & \textbf{備考} \\ \hline
+        Pad Diameter & 1.7 & mm &  \\ \hline
+        Hole Diameter & 1.0 & mm &  \\ \hline
+        Keepout Diameter & 1.77 & mm &  \\ \hline
+        pad to pad & 2.54 & mm &  \\ \hline
+        amount of pad & 10 & -- &  \\ \hline
+    \end{tabular}
+\end{table}
+\fig{J3.png}{J3のフットプリント}{J3}{width=0.43\textwidth,angle=-90}
+\subsection{JP1のフットプリント指定}
+表\ref{tab:JP1},画像\ref{fig:JP1}に示す．
+このフットプリントにより，SMDタイプのIMUのI2Cアドレスの指定を行う．
+\begin{table}[H]
+    \centering
+    \caption{JP1のフットプリント指定}
+    \label{tab:JP1}
+    \begin{tabular}{|c|c|c|c|}
+        \hline
+        \textbf{項目} & \textbf{値} & \textbf{単位} & \textbf{備考} \\ \hline
+        Pad width & 1.0 & mm &  \\ \hline
+        Pad length & 1.5 & mm &  \\ \hline
+        Pad to pad & 1.3 & mm &  \\ \hline
+    \end{tabular}
+\end{table}
+\fig{JP1.png}{JP1のフットプリント}{JP1}{width=0.7\textwidth}
+\subsection{ESP32-C3-WROOM-02のフットプリント指定}
+ESP32-C3-WROOM-02(MCU)のフットプリントについては，データシートが二種類あるため，
+こちらに記載を行う．
+フットプリント等本体仕様については，\\
+\url{https://documentation.espressif.com/esp32-c3_datasheet_en.pdf#cd-func-descr}\\
+に記載されている．
+ハードウェア設計においては，\\
+\url{https://docs.espressif.com/projects/esp-hardware-design-guidelines/en/latest/esp32c3/pcb-layout-design.html}\\
+に記載されている．
+アンテナ周りのキープアウト等の事項は，ハードウェア設計のほうに記載されているため，
+そちらを参照してほしいです．
+\section{シルクスクリーンの表記について}
+シルクスクリーンの表記については，抵抗/キャパシタ/ダイオードについては
+RXX/CXX/DXX（XXは部品番号）のように表記する．\\
+また，コネクタであるJXXについても同様にJXX（XXは部品番号）のように表記する．（J2については後述）\\
+IC1,Q1,UXについても同様に IC1/Q1/UX（Xは部品番号）のように表記する．\\
+buttonXについては button1 のみ RST，その他は buttonX（Xは部品番号）のように表記する．
+JP1においては，回路図に書かれてる値をシルクスクリーンの表記にする．\\
+J2においては信号線名を各ピンのそばに表記する．\\
+\section{大電流箇所について}
+回路図のMORTORにおける箇所においては，ピーク電流が\qty{3.0}{A}，定常値で\qty{1.0}{A}流れることが想定される．そのほかの
+回路においては最大で\qty{0.3}{A}程度の電流（3.3Vのレギュレータの出力直後）が流れることが想定される．
+\section{サーマルパッドについて}
+5Vから3.3Vへの降圧に使用するICまわりにおいては，
+0.6W程度の発熱が想定されるため，放熱用のサーマルパッド/ビアの設置をお願いしたいです．
+\section{外形について}
+基板の外径については，幅を\qty{30}{mm}，高さを\qty{150}{mm}までとし，小さい事には問題がないです．
+また，Mounting Holeについては，基板の四隅に配置をお願いしたいですが，最低でも対角の2か所についていれば
+問題ないです．
+コンポーネントの配置や，Mounting Holeの細かな配置においては指定をしないですが，ESP32-C3-WROOM-02のアンテナについてもこの外形内の収まるようにしてもらいたいです．\\
+以上について，よろしくお願いします．\\
+設計担当者：古城 隆人
+\end{document}

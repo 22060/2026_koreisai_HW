@@ -1,0 +1,11 @@
+PACKAGE 'jst_xh_b2b-xh-a_1x02_p2_50mm_vertical'
+CLASS IC
+PINCOUNT 2
+PINORDER MAIN ,
+	Pin_1__1,
+	Pin_2__2
+FUNCTION MAIN MAIN ,
+	1,
+	2
+PACKAGEPROP VALUE Conn_01x02_Pin
+END

@@ -1,0 +1,25 @@
+Reference,Qty,Value,製品名,Footprint,Datasheet
+"button1,button2,button3,button4",4,SW_Push,PTS810,データシート参照,https://www.littelfuse.com/assetdocs/littelfuse-ck-tactile-pts810-series-datasheet?assetguid=f1e4bc97-66e9-4beb-99c6-eaef0bd3bff4
+"C1,C2,C4,C8,C9",5,0.1u,~,1608,~
+"C3,C5,C10,C12",4,1u,~,1608,~
+"C6,C7,C11,C13",4,10u,~,1608,~
+C14,1,330uF,UUD1V331MNL1GS,データシート参照,https://akizukidenshi.com/goodsaffix/nichicon_UD_series.pdf
+C15,1,NC,C14で足りなかったとき用のソケット,C14と同じフットプリント,~
+D1,1,1N5819WS,1N5819WS,SOD-323,https://datasheet.lcsc.com/lcsc/2204281430_Guangdong-Hottech-1N5819WS_C191023.pdf
+"D2,D3",2,LED_red,OSHR1608C1A,1608,https://akizukidenshi.com/goodsaffix/OSXX1608C1A_ver_a_10.pdf
+"H1,H2,H3,H4",4,MountingHole,別紙指定,別紙指定,
+IC1,1,BNO085,BNO085,データシート参照,https://www.ceva-ip.com/wp-content/uploads/BNO080_085-Datasheet.pdf
+J1,1,USB_C_Receptacle_USB2.0,,Connector_USB:USB_C_Receptacle_GCT_USB4105-xx-A_16P_TopMnt_Horizontal,https://gct.co/files/drawings/usb4105.pdf?utm_source=chatgpt.com
+J2,1,Conn_01x04_Pin,テストポイント,別紙指定,
+J3,1,Conn_01x10_Pin,ピンヘッダ―,別紙指定,~
+"J4,J6,J6,J7",3,Conn_01x02_Pin,ピンヘッダ―,JIS XHトップ型2ピン,https://www.jst-mfg.com/product/pdf/jpn/XH.pdf
+J8,1,Conn_01x04_Pin,Socket,JIS PHコネクタ ベース付ポスト(ディップタイプ)サイド型4ピン,https://www.jst-mfg.com/product/pdf/jpn/PH.pdf
+JP1,1,Jumper_3_Bridged12,ジャンパ(SMD),別紙指定,
+Q1,1,IRLML6244,IRLML6344TRPBF,SOT-23,https://akizukidenshi.com/goodsaffix/irlml6344pbf.pdf
+"R1,R2",2,5.1k,~,1608,~
+"R3,R4,R5,R8,R10,R11,R12",7,10k,~,1608,~
+"R6,R7",2,4.7k,~,1608,~
+R9,1,100,~,1608,~
+U1,1,ESP32-C3-WROOM-02,ESP32-C3-WROOM-02,別紙指定,https://www.espressif.com/sites/default/files/documentation/esp32-c3-wroom-02_datasheet_en.pdf
+U2,1,MAX40200AUK,MAX40200AUK,SOT-23-5,https://datasheets.maximintegrated.com/en/ds/MAX40200.pdf
+U3,1,BD33FC0FP,BD33FC0FP,DPACK(TO-252-2),https://fscdn.rohm.com/en/products/databook/datasheet/ic/power/linear_regulator/bdxxfc0wefj-e.pdf
