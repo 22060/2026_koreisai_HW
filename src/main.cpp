@@ -1,15 +1,14 @@
 #ifdef GYRO_TEST
 #include <Arduino.h>
-// This demo explores two reports (SH2_ARVR_STABILIZED_RV and SH2_GYRO_INTEGRATED_RV) both can be used to give 
-// quartenion and euler (yaw, pitch roll) angles.  Toggle the FAST_MODE define to see other report.  
+#include <ArduinoOTA.h>
+// This demo explores two reports (SH2_ARVR_STABILIZED_RV and SH2_GYRO_INTEGRATED_RV) both can be used to give
+// quartenion and euler (yaw, pitch roll) angles.  Toggle the FAST_MODE define to see other report.
 // Note sensorValue.status gives calibration accuracy (which improves over time)
 #include <Adafruit_BNO08x.h>
 #include <WiFi.h>
 #include <WebSocketsClient.h>
 #include <wire.h>
-
-const char* WIFI_SSID = "ts-h";
-const char* WIFI_PASS = "tsrouter112233@";
+#include "kj_wifi_config.h"
 
 const char* SERVER_IP = "192.168.1.100";
 const uint16_t SERVER_PORT = 8081;
@@ -61,7 +60,7 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length)
 
 // #define FAST_MODE
 
-// For SPI mode, we also need a RESET 
+// For SPI mode, we also need a RESET
 //#define BNO08X_RESET 5
 // but not for I2C or UART
 #define BNO08X_RESET -1
@@ -141,6 +140,10 @@ if (!bno08x.begin_I2C(0x4B, &Wire)) {
   Serial.print("IP: ");
   Serial.println(WiFi.localIP());
 
+  ArduinoOTA.setPassword("admin");  // <- platform.iniに指定した password と合わせる
+
+  ArduinoOTA.begin();
+
   webSocket.beginSSL("koreisai-game.ryutolab.com", 443, "/ws");
   webSocket.onEvent(webSocketEvent);
   webSocket.setReconnectInterval(5000);
@@ -177,6 +180,7 @@ void quaternionToEulerGI(sh2_GyroIntegratedRV_t* rotational_vector, euler_t* ypr
 }
 float currentW,currentX,currentY,currentZ;
 void loop() {
+    ArduinoOTA.handle();
     digitalWrite(2, digitalRead(0));
     digitalWrite(3, digitalRead(1));
     webSocket.loop();

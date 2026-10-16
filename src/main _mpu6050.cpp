@@ -2,14 +2,12 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <WebSocketsClient.h>
+#include "kj_wifi_config.h"
 
 // MPU6050 および DMP制御用のライブラリ
 #include "I2Cdev.h"
 #include "MPU6050_6Axis_MotionApps20.h"
 #include "Wire.h"
-
-const char* WIFI_SSID = "Xiaomi 14T Pro";
-const char* WIFI_PASS = "g2k4bcc25ti2xbf";
 
 const char* SERVER_IP = "192.168.1.100";
 const uint16_t SERVER_PORT = 8081;
