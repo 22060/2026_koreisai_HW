@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include <WiFi.h>
+#include "kj_wifi_config.h"
 #include <WebSocketsClient.h>
 #include <ArduinoOTA.h>
 #include <Adafruit_BNO055.h>
@@ -13,8 +14,6 @@ NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> strip(1, LED_PIN);
 
 float hue = 0.0f;
 const float hueStep = 360.0f / (100.0f * 10.0f); // 10秒で一周
-const char* WIFI_SSID = "Xiaomi 14T Pro";
-const char* WIFI_PASS = "g2k4bcc25ti2xbf";
 const char* CONTROLLER_ID = "controller_001";
 
 WebSocketsClient webSocket;
