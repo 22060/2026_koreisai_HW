@@ -34,6 +34,10 @@ void webSocketEvent(WStype_t type, uint8_t* payload, size_t length)
 
 void setup()
 {
+    pinMode(0, INPUT);
+    pinMode(1, INPUT);
+    pinMode(2, OUTPUT);
+    pinMode(3, OUTPUT);
     strip.Begin();
     strip.Show();
     int hue = 60;
@@ -81,6 +85,15 @@ void setup()
 
     ArduinoOTA.setPassword("admin");
     ArduinoOTA.begin();
+    while(1){
+        ArduinoOTA.handle();
+        imu::Quaternion q = bno055.getQuat();
+        Serial.print("Quaternion: ");
+        Serial.print("w: "); Serial.print(q.w(), 6);
+        Serial.print(" x: "); Serial.print(q.x(), 6);
+        Serial.print(" y: "); Serial.print(q.y(), 6);
+        Serial.print(" z: "); Serial.println(q.z(), 6);
+    }
 
     webSocket.beginSSL("koreisai-game.ryutolab.com", 443, "/ws");
     webSocket.onEvent(webSocketEvent);
@@ -95,6 +108,8 @@ void setup()
 
 void loop()
 {
+    digitalWrite(2, digitalRead(0));
+    digitalWrite(3, digitalRead(1));
     ArduinoOTA.handle();
     webSocket.loop();
 
