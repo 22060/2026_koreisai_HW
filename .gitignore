@@ -3,3 +3,8 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
+
+# Local Python caches and private Wi-Fi configuration.
+__pycache__/
+*.py[cod]
+.env
